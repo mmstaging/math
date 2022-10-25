@@ -16,22 +16,22 @@ public struct Quat<T: FloatingPoint>: Equatable{
 }
 
 extension Quat {
-    public init(_ arr:[T]) {
-        self.init(r: arr[0], i: Vec3<T>(Array(arr[1...])))
+    public init(array:[T]) {
+        self.init(r: array[0], i: Vec3(array: Array(array[1...])))
     }
 }
 
 extension Quat where T == Float {
     public init(_ q: simd_quatf) {
         r = q.real
-        i = Vec3([q.imag[0], q.imag[1], q.imag[2]])
+        i = Vec3(array: [q.imag[0], q.imag[1], q.imag[2]])
     }
 }
 
 extension Quat where T == Double {
     public init(_ q: simd_quatd) {
         r = q.real
-        i = Vec3([q.imag[0], q.imag[1], q.imag[2]])
+        i = Vec3(array: [q.imag[0], q.imag[1], q.imag[2]])
     }
 }
 
@@ -40,7 +40,7 @@ extension Quat {
         self.init(r: angle, i: axis)
     }
     public init(angle: T, axis: [T]) {
-        self.init(r: angle, i: Vec3<T>(axis))
+        self.init(r: angle, i: Vec3(array: axis))
     }
 }
 
@@ -53,10 +53,10 @@ infix operator -=: AssignmentPrecedence
 
 extension Quat {
     public static func +(lhs: Self, rhs: Self) -> Self {
-        Self.init(zip(lhs.array,rhs.array).map { $0.0 + $0.1 })
+        Self.init(array: zip(lhs.array,rhs.array).map { $0.0 + $0.1 })
     }
     public static func -(lhs: Self, rhs: Self) -> Self {
-        Self.init(zip(lhs.array,rhs.array).map { $0.0 - $0.1 })
+        Self.init(array: zip(lhs.array,rhs.array).map { $0.0 - $0.1 })
     }
     public static func +=(lhs: inout Self, rhs: Self) {
         lhs = lhs + rhs
@@ -66,7 +66,7 @@ extension Quat {
     }
 
     public static func *(lhs: Self, rhs: T) -> Self {
-        Self(lhs.array.map { $0 * rhs })
+        Self(array: lhs.array.map { $0 * rhs })
     }
 }
 
@@ -79,7 +79,7 @@ extension Quat where T == Float {
         let q1 = rhs.array
         let (w0,x0,y0,z0) = (q0[0], q0[1], q0[2], q0[3])
         let (w1,x1,y1,z1) = (q1[0], q1[1], q1[2], q1[3])
-        return QuatF([
+        return QuatF(array: [
             w0*w1 - x0*x1 - y0*y1 - z0*z1,
             w0*x1 + x0*w1 + y0*z1 - z0*y1,
             w0*y1 - x0*z1 + y0*w1 + z0*x1,
@@ -94,7 +94,7 @@ extension Quat where T == Double {
         let q1 = rhs.array
         let (w0,x0,y0,z0) = (q0[0], q0[1], q0[2], q0[3])
         let (w1,x1,y1,z1) = (q1[0], q1[1], q1[2], q1[3])
-        return QuatD([
+        return QuatD(array: [
             w0*w1 - x0*x1 - y0*y1 - z0*z1,
             w0*x1 + x0*w1 + y0*z1 - z0*y1,
             w0*y1 - x0*z1 + y0*w1 + z0*x1,

@@ -1,19 +1,26 @@
-public protocol Vec<T>: Equatable {
+public typealias Vec2f = Vec2<Float>
+public typealias Vec2d = Vec2<Double>
+public typealias Vec3f = Vec3<Float>
+public typealias Vec3d = Vec3<Double>
+
+//MARK: - Vector protocol
+
+public protocol Vector<T>: Equatable {
     associatedtype T = Numeric
-    init(_ arr: [T])
+    init(array: [T])
     var array: [T] { get }
     subscript(index: Int) -> T { get set }
     static func ==(lhs: Self, rhs: Self) -> Bool
 }
 
-extension Vec where T:Equatable {
+extension Vector where T:Equatable {
     public static func ==(lhs: Self, rhs: Self) -> Bool {
         lhs.array == rhs.array
     }
 }
 
 infix operator ⋅: MultiplicationPrecedence
-extension Vec where T: Numeric {
+extension Vector where T: Numeric {
     public static func ⋅(lhs: Self, rhs: Self) -> T {
         lhs.dot(with: rhs)
     }
@@ -30,12 +37,12 @@ infix operator *=: AssignmentPrecedence
 infix operator /: MultiplicationPrecedence
 infix operator /=: AssignmentPrecedence
 
-extension Vec where T: Numeric {
+extension Vector where T: Numeric {
     public static func +(lhs: Self, rhs: Self) -> Self {
-        Self.init(zip(lhs.array,rhs.array).map { $0.0 + $0.1 })
+        Self.init(array: zip(lhs.array,rhs.array).map { $0.0 + $0.1 })
     }
     public static func -(lhs: Self, rhs: Self) -> Self {
-        Self.init(zip(lhs.array,rhs.array).map { $0.0 - $0.1 })
+        Self.init(array: zip(lhs.array,rhs.array).map { $0.0 - $0.1 })
     }
     public static func +=(lhs: inout Self, rhs: Self) {
         lhs = lhs + rhs
@@ -44,34 +51,34 @@ extension Vec where T: Numeric {
         lhs = lhs - rhs
     }
     public static func *(lhs: Self, rhs: T) -> Self {
-        Self.init(lhs.array.map{ $0 * rhs })
+        Self.init(array: lhs.array.map{ $0 * rhs })
     }
     public static func *(lhs: T, rhs: Self) -> Self {
-        Self.init(rhs.array.map{ $0 * lhs })
+        Self.init(array: rhs.array.map{ $0 * lhs })
     }
     public static func *=(lhs: inout Self, rhs: T) {
-        lhs = Self.init(lhs.array.map{ $0 * rhs })
+        lhs = Self.init(array: lhs.array.map{ $0 * rhs })
     }
 }
 
-extension Vec where T: FloatingPoint {
+extension Vector where T: FloatingPoint {
     public static func /(lhs: Self, rhs: T) -> Self {
-        Self.init(lhs.array.map{ $0 / rhs })
+        Self.init(array: lhs.array.map{ $0 / rhs })
     }
     public static func /=(lhs: inout Self, rhs: T) {
-        lhs = Self.init(lhs.array.map{ $0 / rhs })
+        lhs = Self.init(array: lhs.array.map{ $0 / rhs })
     }
 }
 
-extension Vec where T: Numeric {
+extension Vector where T: Numeric {
     public func dot(with other: Self) -> T {
-        zip(self.array, other.array).reduce(T(exactly: 0)!) { $0 + $1.0 * $1.1 }
+        zip(self.array, other.array).reduce(0) { $0 + $1.0 * $1.1 }
     }
 
    public var magnitudeSquared: T { self.dot(with: self) }
 }
 
-extension Vec where T: FloatingPoint {
+extension Vector where T: FloatingPoint {
     public var magnitude: T  {
         self.magnitudeSquared.squareRoot()
     }
@@ -82,7 +89,7 @@ extension Vec where T: FloatingPoint {
 
 // MARK: - Vec2
 
-public struct Vec2<T:Numeric>:Vec  {
+public struct Vec2<T:Numeric>:Vector  {
     public var x: T
     public var y: T
     public var array: [T] {[x,y]}
@@ -100,18 +107,15 @@ public struct Vec2<T:Numeric>:Vec  {
 }
 
 extension Vec2 {
-    public init(_ arr: [T]) {
-        self.init(x: arr[0], y: arr[1])
+    public init(array: [T]) {
+        precondition(array.count == 2)
+        self.init(x: array[0], y: array[1])
     }
 }
 
-public typealias Vec2F = Vec2<Float>
-public typealias Vec2D = Vec2<Double>
-
-
 //MARK: - Vec3
 
-public struct Vec3<T:Numeric>: Vec {
+public struct Vec3<T:Numeric>: Vector {
     public var x: T
     public var y: T
     public var z: T
@@ -134,27 +138,20 @@ public struct Vec3<T:Numeric>: Vec {
 }
 
 extension Vec3 {
-    public init(_ arr: [T]) {
-        self.init(x: arr[0], y: arr[1], z: arr[2])
+    public init(array: [T]) {
+        precondition(array.count == 3)
+        self.init(x: array[0], y: array[1], z: array[2])
     }
 }
 
 infix operator ×: MultiplicationPrecedence
 extension Vec3 where T: Numeric {
     public func cross(with other: Vec3<T>) -> Vec3<T> {
-        Vec3<T>([
-            self.y*other.z - self.z*other.y,
-            self.x*other.z - self.z*other.x,
-            self.x*other.y - self.y*other.x
-            ])
+        .init(array: [y*other.z - z*other.y, x*other.z - z*other.x, x*other.y - y*other.x])
     }
 
     public static func ×(lhs: Vec3<T>, rhs: Vec3<T>) -> Vec3<T> {
         lhs.cross(with: rhs)
     }
 }
-
-public typealias Vec3F = Vec3<Float>
-public typealias Vec3D = Vec3<Double>
-
 
