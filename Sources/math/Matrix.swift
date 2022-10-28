@@ -3,8 +3,8 @@ public typealias Mat22f = Matrix22<Float>
 public typealias Mat22d = Matrix22<Double>
 public typealias Mat33f = Matrix33<Float>
 public typealias Mat33d = Matrix33<Double>
-//public typealias Mat44f = Matrix44<Float>
-//public typealias Mat44d = Matrix44<Double>
+public typealias MatH44f = MatrixH44<Float>
+public typealias MatH44d = MatrixH44<Double>
 
 //MARK: - MatrixIndex
 public enum MatrixIndex {
@@ -17,15 +17,20 @@ public enum MatrixIndex {
 
 fileprivate let matrix22IndexToArrayIndex:[MatrixIndex:Int] = [._00: 0, ._01: 1, ._10: 2, ._11: 3]
 fileprivate let matrix33IndexToArrayIndex:[MatrixIndex:Int] = [._00: 0, ._01: 1, ._02: 2, ._10: 3, ._11: 4, ._12: 5, ._20: 6, ._21: 7, ._22: 8]
-fileprivate let matrix44IndexToArrayIndex:[MatrixIndex:Int] = [._00: 0, ._01: 1, ._02: 2, ._03: 3, ._10: 4, ._11: 5, ._12: 6, ._13: 7, ._20: 8, ._21: 9, ._22: 10, ._23: 11, ._30: 12,._31: 13, ._32: 14, ._33: 15]
+fileprivate let matrixH44IndexToArrayIndex:[MatrixIndex:Int] = [._00: 0, ._01: 1, ._02: 2, ._03: 3, ._10: 4, ._11: 5, ._12: 6, ._13: 7, ._20: 8, ._21: 9, ._22: 10, ._23: 11, ._30: 12,._31: 13, ._32: 14, ._33: 15]
+
+//MARK: - Matrix protocol
+public protocol Matrix<T>: Equatable {
+    associatedtype T = Numeric
+    subscript(index: MatrixIndex) -> T { get set }
+}
 
 //MARK: - SquareMatrix protocol
-public protocol SquareMatrix<T>: Equatable {
+public protocol SquareMatrix<T>: Matrix {
     associatedtype T = Numeric
     init()
     init(array: [T])
     var array: [T] { get }
-    subscript(index: MatrixIndex) -> T { get set }
     static func ==(lhs: Self, rhs: Self) -> Bool
     static func *(lhs: Self, rhs: Self) -> Self
 
@@ -156,17 +161,17 @@ public struct Matrix22<T:FloatingPoint>: SquareMatrix {
         [Vec2(array: [self[._00], self[._10]]), Vec2(array: [self[._01], self[._11]])]
     }
 
-    public static var identity: Matrix22 {
+    public static var identity: Self {
         .init(diagonal: [1,1])
     }
 
-    public func inverse() -> Matrix22 {
+    public func inverse() -> Self {
         let det = determinant()
         guard !det.isZero else { fatalError("determinant is zero \(array)") }
         return .init(array: [self[._11], -self[._01], -self[._10], self[._00]].map { $0 / det })
     }
 
-    public func transpose() -> Matrix22 {
+    public func transpose() -> Self {
         var result = self
         (result[._01], result[._10]) = (result[._10], result[._01])
         return result
@@ -246,11 +251,11 @@ public struct Matrix33<T:FloatingPoint>: SquareMatrix {
             Vec3(array: [self[._02], self[._12], self[._22]])]
     }
 
-    public static var identity: Matrix33 {
+    public static var identity: Self {
         .init(diagonal: [1,1,1])
     }
 
-    public func adjugate() -> Matrix33 {
+    public func adjugate() -> Self {
         let d00 = self[._11] * self[._22] - self[._12] * self[._21]
         let d01 = self[._10] * self[._22] - self[._12] * self[._20]
         let d02 = self[._10] * self[._21] - self[._11] * self[._20]
@@ -260,16 +265,16 @@ public struct Matrix33<T:FloatingPoint>: SquareMatrix {
         let d20 = self[._01] * self[._12] - self[._02] * self[._11]
         let d21 = self[._00] * self[._12] - self[._02] * self[._10]
         let d22 = self[._00] * self[._11] - self[._01] * self[._10]
-        return Matrix33(array: [d00, -d01, d02, -d10, d11, -d12, d20, -d21, d22])
+        return Self(array: [d00, -d01, d02, -d10, d11, -d12, d20, -d21, d22])
     }
 
-    public func inverse() -> Matrix33 {
+    public func inverse() -> Self {
         let det = determinant()
         guard !det.isZero else { fatalError("determinant is zero \(array)") }
-        return Matrix33(array: transpose().adjugate().array.map { $0 / det })
+        return Self(array: transpose().adjugate().array.map { $0 / det })
     }
 
-    public func transpose() -> Matrix33 {
+    public func transpose() -> Self {
         var result = self
         (result[._01], result[._10]) = (result[._10], result[._01])
         (result[._02], result[._20]) = (result[._20], result[._02])
@@ -313,8 +318,21 @@ public struct Matrix33<T:FloatingPoint>: SquareMatrix {
 
 
 
-//MARK: - Matrix44
+//MARK: - MatrixH44
 
-//public struct Matrix44<T:FloatingPoint>: SquareMatrix {
-//    public init() {}
-//}
+public struct MatrixH44<T:FloatingPoint>: Matrix {
+    var store: [T]
+
+    public init() {
+        store = Array(repeating: 0, count: 16)
+    }
+
+    public var array: [T] {
+        store
+    }
+
+    public subscript(index: MatrixIndex) -> T {
+        get { store[matrixH44IndexToArrayIndex[index]!] }
+        set { store[matrixH44IndexToArrayIndex[index]!] = newValue }
+    }
+}
